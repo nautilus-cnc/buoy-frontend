@@ -27,7 +27,7 @@ const TimeDisplay = memo(() => {
 const quickCommands = [
   { label: 'Get Status', command: 'STATUS', description: 'System Status' },
   { label: 'Health Check', command: 'HEALTH', description: 'Health Check' },
-  { label: 'System Performance', command: 'STATS', description: 'System Statistics' },
+  { label: 'Get Stats', command: 'STATS', description: 'System Statistics' },
   { label: 'Get Time', command: 'TIME', description: 'Current Time' },
 ];
 
@@ -91,34 +91,34 @@ const RelayGrid = memo(({
       </div>
     </div>
 
-    {/* Module grids - Always 2x2 grid */}
-    <div className="grid grid-cols-2 gap-4">
+    {/* Module grids */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {[0, 1, 2, 3].map(moduleIndex => (
-        <div key={moduleIndex} className="border rounded-lg p-3 bg-white shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold flex items-center">
-              <div className={`w-2.5 h-2.5 rounded-full mr-2 ${systemStatus.modulesOnline[moduleIndex] ? 'bg-green-500' : 'bg-red-500'}`}></div>
+        <div key={moduleIndex} className="border rounded-lg p-4 bg-white shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center">
+              <div className={`w-3 h-3 rounded-full mr-2 ${systemStatus.modulesOnline[moduleIndex] ? 'bg-green-500' : 'bg-red-500'}`}></div>
               Module {moduleIndex + 1}
             </h3>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <button
                 onClick={() => setModuleAll(moduleIndex, true)}
                 disabled={isLoading}
-                className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
               >
                 All ON
               </button>
               <button
                 onClick={() => setModuleAll(moduleIndex, false)}
                 disabled={isLoading}
-                className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
               >
                 All OFF
               </button>
             </div>
           </div>
           
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             {[0, 1, 2, 3, 4, 5, 6, 7].map(relayIndex => {
               const globalIndex = moduleIndex * 8 + relayIndex;
               const isOn = relayStates[globalIndex];
@@ -129,7 +129,7 @@ const RelayGrid = memo(({
                   onClick={() => toggleRelay(globalIndex)}
                   disabled={isLoading}
                   className={`
-                    aspect-square flex flex-col items-center justify-center p-1 rounded-md border-2 transition-all duration-200
+                    aspect-square flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200
                     ${isOn 
                       ? 'bg-green-500 border-green-600 text-white shadow-lg' 
                       : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
@@ -137,8 +137,8 @@ const RelayGrid = memo(({
                     ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
                   `}
                 >
-                  {isOn ? <Zap size={14} /> : <ZapOff size={14} />}
-                  <span className="text-[10px] font-medium mt-0.5">R{relayIndex + 1}</span>
+                  {isOn ? <Zap size={16} /> : <ZapOff size={16} />}
+                  <span className="text-xs font-medium mt-1">R{relayIndex + 1}</span>
                 </button>
               );
             })}
@@ -273,21 +273,22 @@ const StatusTab = memo(({
         {[0, 1, 2, 3].map(moduleIndex => {
           const moduleRelays = committedRelayStates.slice(moduleIndex * 8, (moduleIndex + 1) * 8);
           const activeCount = moduleRelays.filter(Boolean).length;
+          const isDisabled = moduleIndex > 0;
           
           return (
-            <div key={moduleIndex} className="border rounded p-3">
+            <div key={moduleIndex} className={`border rounded p-3 ${isDisabled ? 'bg-gray-200 opacity-90' : ''}`}>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">Module {moduleIndex + 1}</h4>
-                <div className={`w-3 h-3 rounded-full ${systemStatus.modulesOnline[moduleIndex] ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <h4 className={`font-medium ${isDisabled ? 'text-gray-500' : ''}`}>Module {moduleIndex + 1} {isDisabled && <span className="text-xs text-gray-500">(Not in use)</span>}</h4>
+                <div className={`w-3 h-3 rounded-full ${isDisabled ? 'bg-gray-600' : systemStatus.modulesOnline[moduleIndex] ? 'bg-green-500' : 'bg-red-500'}`}></div>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className={`text-sm ${isDisabled ? 'text-gray-500' : 'text-gray-600'}`}>
                 Active: {activeCount}/8 relays (committed)
               </div>
               <div className="flex mt-2 space-x-1">
                 {moduleRelays.map((isOn, relayIndex) => (
                   <div
                     key={relayIndex}
-                    className={`w-4 h-4 rounded-sm ${isOn ? 'bg-green-500' : 'bg-gray-300'}`}
+                    className={`w-4 h-4 rounded-sm ${isDisabled ? 'bg-gray-400' : isOn ? 'bg-green-500' : 'bg-gray-300'}`}
                     title={`Relay ${relayIndex + 1}: ${isOn ? 'ON' : 'OFF'} (committed)`}
                   ></div>
                 ))}
@@ -464,7 +465,7 @@ function App() {
   const [systemStatus] = useState({
     connected: false,
     lastUpdate: null,
-    modulesOnline: [true, true, true, true],
+    modulesOnline: [true, false, false, false], // Only module 1 is online
     signalStrength: 0
   });
 
@@ -518,6 +519,10 @@ function App() {
 
   // Toggle individual relay (no immediate send)
   const toggleRelay = useCallback((index) => {
+    // Don't allow changes to disabled modules (modules 2, 3, 4)
+    const moduleIndex = Math.floor(index / 8);
+    if (moduleIndex > 0) return;
+    
     const newStates = [...relayStates];
     newStates[index] = !newStates[index];
     setRelayStates(newStates);
@@ -529,6 +534,9 @@ function App() {
 
   // Module control functions (no immediate send)
   const setModuleAll = useCallback((moduleIndex, state) => {
+    // Don't allow changes to disabled modules (modules 2, 3, 4)
+    if (moduleIndex > 0) return;
+    
     const newStates = [...relayStates];
     const startIndex = moduleIndex * 8;
     
@@ -544,13 +552,24 @@ function App() {
 
   // System-wide control (no immediate send)
   const setAllRelays = useCallback((state) => {
-    const newStates = new Array(32).fill(state);
+    // For now, only affect Module 1 since others are disabled
+    const newStates = [...relayStates];
+    
+    // Only set first 8 relays (Module 1)
+    for (let i = 0; i < 8; i++) {
+      newStates[i] = state;
+    }
+    // Keep other modules unchanged
+    for (let i = 8; i < 32; i++) {
+      newStates[i] = relayStates[i];
+    }
+    
     setRelayStates(newStates);
     
     // Check if there are any differences from committed state
     const hasChanges = newStates.some((state, i) => state !== committedRelayStates[i]);
     setHasUnappliedChanges(hasChanges);
-  }, [committedRelayStates]);
+  }, [relayStates, committedRelayStates]);
 
   // Send individual relay commands (this actually sends the commands)
   const applyRelayChanges = useCallback(async () => {
@@ -564,12 +583,29 @@ function App() {
       const allOn = relayStates.every(state => state === true);
       const allOff = relayStates.every(state => state === false);
       
+      // Count the number of changed relays
+      const changedRelays = relayStates.map((state, index) => 
+        state !== committedRelayStates[index] ? index : -1
+      ).filter(index => index !== -1);
+      
       if (allOn && !committedRelayStates.every(state => state === true)) {
         commands.push({ command: 'ALLON', description: 'All Relays ON' });
       } else if (allOff && !committedRelayStates.every(state => state === false)) {
         commands.push({ command: 'ALLOFF', description: 'All Relays OFF' });
+      } else if (changedRelays.length === 1) {
+        // Single relay change
+        const index = changedRelays[0];
+        const moduleNum = Math.floor(index / 8) + 1;
+        const relayNum = (index % 8) + 1;
+        const state = relayStates[index];
+        commands.push({
+          command: `M${moduleNum}R${relayNum}${state ? 'ON' : 'OFF'}`,
+          description: `Module ${moduleNum} Relay ${relayNum} ${state ? 'ON' : 'OFF'}`
+        });
       } else {
         // Check for module-level changes first
+        let usedModuleCommand = false;
+        
         for (let moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
           const startIndex = moduleIndex * 8;
           const moduleStates = relayStates.slice(startIndex, startIndex + 8);
@@ -580,18 +616,39 @@ function App() {
           const committedModuleAllOn = committedModuleStates.every(state => state === true);
           const committedModuleAllOff = committedModuleStates.every(state => state === false);
           
-          if (moduleAllOn && !committedModuleAllOn) {
-            commands.push({ 
-              command: `M${moduleIndex + 1}ALLON`, 
-              description: `Module ${moduleIndex + 1} All ON` 
-            });
-          } else if (moduleAllOff && !committedModuleAllOff) {
-            commands.push({ 
-              command: `M${moduleIndex + 1}ALLOFF`, 
-              description: `Module ${moduleIndex + 1} All OFF` 
-            });
-          } else {
-            // Send individual relay commands for this module
+          // Check if this module has any changes
+          const moduleHasChanges = moduleStates.some((state, i) => state !== committedModuleStates[i]);
+          
+          if (moduleHasChanges) {
+            if (moduleAllOn && !committedModuleAllOn) {
+              commands.push({ 
+                command: `M${moduleIndex + 1}ALLON`, 
+                description: `Module ${moduleIndex + 1} All ON` 
+              });
+              usedModuleCommand = true;
+            } else if (moduleAllOff && !committedModuleAllOff) {
+              commands.push({ 
+                command: `M${moduleIndex + 1}ALLOFF`, 
+                description: `Module ${moduleIndex + 1} All OFF` 
+              });
+              usedModuleCommand = true;
+            }
+          }
+        }
+        
+        // If we haven't used module commands and have multiple individual relay changes,
+        // use the 32-bit format
+        if (!usedModuleCommand && changedRelays.length > 1) {
+          // Generate 32-bit string (1 for ON, 0 for OFF)
+          const bitString = relayStates.map(state => state ? '1' : '0').join('');
+          commands.push({
+            command: bitString,
+            description: `Multiple relay changes (${changedRelays.length} relays)`
+          });
+        } else if (!usedModuleCommand) {
+          // Fall back to individual commands if needed
+          for (let moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
+            const startIndex = moduleIndex * 8;
             for (let relayIndex = 0; relayIndex < 8; relayIndex++) {
               const globalIndex = startIndex + relayIndex;
               if (relayStates[globalIndex] !== committedRelayStates[globalIndex]) {
