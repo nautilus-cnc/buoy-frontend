@@ -699,7 +699,6 @@ function App() {
               success: true
             }, ...prev.slice(0, 9)]);
           } else {
-            const data = await response.json();
             setCommandHistory(prev => [{
               command: cmd.command,
               description: cmd.description + ' - FAILED',
