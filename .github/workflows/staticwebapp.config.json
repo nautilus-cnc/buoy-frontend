@@ -1,0 +1,17 @@
+{
+  "auth": {
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "login": {
+          "loginParameters": ["domain_hint=innoventure-technologies.com"]
+        }
+      }
+    }
+  },
+  "routes": [
+    { "route": "/*", "allowedRoles": ["authenticated"] }
+  ],
+  "responseOverrides": {
+    "401": { "redirect": "/.auth/login/aad", "statusCode": 302 }
+  }
+}
