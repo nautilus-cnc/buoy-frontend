@@ -446,7 +446,7 @@ function App() {
   const [config, setConfig] = useState({
     imei: '036026965478615',
     recipientEmail: 'your-verified@yourdomain.com',
-    apiUrl: 'http://localhost:5019/api/Buoy/send-command'
+    apiUrl: '/api/Buoy/send-command'
   });
 
   // Relay state - 32 relays (4 modules × 8 relays each)
